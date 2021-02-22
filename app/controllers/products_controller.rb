@@ -1,4 +1,5 @@
 class ProductsController < ApplicationController
+  before_action :authenticate_user!
   before_action :set_product, only: %i[ show edit update destroy ]
 
   # GET /products or /products.json
@@ -17,12 +18,13 @@ class ProductsController < ApplicationController
 
   # GET /products/1/edit
   def edit
+    
   end
 
   # POST /products or /products.json
   def create
     @product = Product.new(product_params)
-
+    @product.user = current_user
     respond_to do |format|
       if @product.save
         format.html { redirect_to @product, notice: "Product was successfully created." }
@@ -36,6 +38,9 @@ class ProductsController < ApplicationController
 
   # PATCH/PUT /products/1 or /products/1.json
   def update
+    unless @product.user == current_user
+      return flash.now[:alert] = "It isn't yours"
+    end
     respond_to do |format|
       if @product.update(product_params)
         format.html { redirect_to @product, notice: "Product was successfully updated." }
@@ -49,6 +54,9 @@ class ProductsController < ApplicationController
 
   # DELETE /products/1 or /products/1.json
   def destroy
+    unless @product.user == current_user
+      return flash.now[:alert] = "It isn't yours"
+    end
     @product.destroy
     respond_to do |format|
       format.html { redirect_to products_url, notice: "Product was successfully destroyed." }
@@ -64,6 +72,6 @@ class ProductsController < ApplicationController
 
     # Only allow a list of trusted parameters through.
     def product_params
-      params.require(:product).permit(:name, :price, :stock, :image, :q)
+      params.require(:product).permit(:name, :price, :stock, :image, :q, :user_id)
     end
 end
